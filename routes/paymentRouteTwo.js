@@ -7,7 +7,7 @@ const {
   userFetchWalletHistory,
   searchFetchPayNotification,
   delPayNotification,
-} = require("../controls/paymentControl");
+} = require("../controls/paymentControlTwo");
 const express = require("express");
 const router = express.Router();
 

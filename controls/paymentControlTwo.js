@@ -6,35 +6,6 @@ const path = require("path");
 const { MulterError } = require("multer");
 const { google } = require("googleapis");
 
-const googleUpload = multer();
-
-const KEYFILEPATH = path.join(__dirname, "credentials.json");
-const SCOPES = ["https://www.googleapis.com/auth/drive"];
-
-const auth = new google.auth.GoogleAuth({
-  keyFile: KEYFILEPATH,
-  scopes: SCOPES,
-});
-
-const uploadFile = async (fileObject) => {
-  const bufferStream = new stream.PassThrough();
-  bufferStream.end(fileObject.buffer);
-  const { data } = await google
-    .drive({ version: "v3", auth: auth })
-    .files.create({
-      media: {
-        mimeType: fileObject.mimeType,
-        body: bufferStream,
-      },
-      requestBody: {
-        name: fileObject.originalname,
-        parents: ["1oaWZiL8GJF-kHVMJNgk5G5_4sJhN8KB5"],
-      },
-      fields: "id,name",
-    });
-  console.log(`Uploaded file ${data.name} ${data.id}`);
-};
-
 global.payId = Math.floor(Math.random() * 100) + 1;
 
 const multerConfig = multer.diskStorage({
@@ -72,7 +43,7 @@ const paymentNotification = (req, res) => {
             msg: `Payment with narration ${narration} and amount ${amount} already exists`,
             result,
           });
-
+          console.log(JSON.stringify(file));
           res.status(400).json({
             msg: `Payment with narration ${narration} and amount ${amount} already exists`,
           });
@@ -117,50 +88,90 @@ const paymentNotification = (req, res) => {
     );
   };
 
-  const googleSendUpload =
-    (googleUpload.single("paymentEvidence"),
-    async (req, res) => {
-      try {
-        console.log(req.body);
-        console.log(req.file);
-        const { body, file } = req;
+  const postUpload = multer({
+    dest: "payment evidence",
+    storage: multerConfig,
+    fileFilter: isImage,
+  }).any();
 
-        await uploadFile(file);
+  //single("paymentEvidence");
 
-        console.log(body);
-        res.status(200).send("Form Submitted");
-      } catch (error) {
-        res.send(error.message);
-      }
+  postUpload(req, res, (err) => {
+    // Google Upload Begin
+
+    const KEYFILEPATH = path.join(__dirname, "kaycadCredential.json");
+    const SCOPES = ["https://www.googleapis.com/auth/drive"];
+
+    const auth = new google.auth.GoogleAuth({
+      keyFile: KEYFILEPATH,
+      scopes: SCOPES,
     });
 
-  // const postUpload = multer({
-  //   dest: "payment evidence",
-  //   storage: multerConfig,
-  //   fileFilter: isImage,
-  // }).single("paymentEvidence");
+    const uploadFile = async (fileObject, myBuffer) => {
+      const bufferStream = new stream.PassThrough();
+      bufferStream.end(myBuffer);
+      const { data } = await google
+        .drive({ version: "v3", auth: auth })
+        .files.create({
+          media: {
+            mimeType: fileObject.mimetype,
+            body: bufferStream,
+          },
+          requestBody: {
+            name: fileObject.filename,
+            parents: ["1oaWZiL8GJF-kHVMJNgk5G5_4sJhN8KB5"],
+          },
+          fields: "id,name",
+        });
+      console.log(`Uploaded file ${data.name} ${data.id}`);
+    };
 
-  // postUpload(req, res, (err) => {
-  //   if (err instanceof multer.MulterError) {
-  //     console.log({ msg: "Payment Evidence Upload failed", err });
+    try {
+      console.log(req.body);
+      console.log(req.files);
+      const { body, files } = req;
 
-  //     res.status(400).json({ msg: "Payment Evidence Upload failed" });
-  //   } else if (err) {
-  //     console.log({
-  //       msg: "Unable to send Payment Notification, Kindly retry",
-  //       err,
-  //     });
-  //     res
-  //       .status(400)
-  //       .json({ msg: "Unable to send Payment Notification, Kindly retry" });
-  //   } else {
-  //     console.log({
-  //       msg: "Payment Notification sent successfully",
-  //     });
+      for (let f = 0; f < files.length; f += 1) {
+        function base64_encode(myfile) {
+          const str = fs.readFileSync(myfile, "base64");
 
-  //     res.status(200).json({ msg: "Payment Notification sent successfully" });
-  //   }
-  // });
+          //const str = await image.toString('base64');
+
+          const buffer = Buffer.from(str, "base64");
+
+          return buffer;
+        }
+
+        var myBuffer = base64_encode(files[f].path);
+        console.log("buffer = " + myBuffer);
+
+        uploadFile(files[f], myBuffer);
+      }
+
+      console.log(body);
+
+      console.log({
+        msg: "Payment Notification sent successfully",
+      });
+      res.status(200).json({ msg: "Payment Notification sent successfully" });
+    } catch (f) {
+      res.send(f.message);
+    }
+
+    if (err instanceof multer.MulterError) {
+      console.log({ msg: "Payment Evidence Upload failed", err });
+
+      res.status(400).json({ msg: "Payment Evidence Upload failed" });
+    } else if (err) {
+      console.log({
+        msg: "Unable to send Payment Notification, Kindly retry",
+        err,
+      });
+      res
+        .status(400)
+        .json({ msg: "Unable to send Payment Notification, Kindly retry" });
+    }
+  });
 };
 
 const paymentConfirmationRequest = async (req, res) => {
