@@ -11,7 +11,7 @@ global.payId = Math.floor(Math.random() * 100) + 1;
 const multerConfig = multer.diskStorage({
   destination: (req, file, cb) => {
     // cb(null, path.join(__dirname, '../uploads/'))
-    cb(null, "payment evidence");
+    cb(null, `${__dirname}/uploads`);
   },
 
   filename: (req, file, cb) => {
