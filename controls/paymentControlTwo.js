@@ -138,15 +138,33 @@ const paymentNotification = (req, res) => {
           //const str = await image.toString('base64');
 
           const buffer = Buffer.from(str, "base64");
+          //console.log("body uri in = " + myfile);
 
           return buffer;
         }
 
+        //var myBuffer = base64_encode(files[f].path);
         var myBuffer = base64_encode(files[f].path);
-        console.log("buffer = " + myBuffer);
+        //console.log("body uri out = " + body.uri);
+        //console.log("buffer = " + myBuffer);
 
         uploadFile(files[f], myBuffer);
       }
+
+      // function base64_encode(myfile) {
+      //   const str = fs.readFileSync(myfile, "base64");
+
+      //   //const str = await image.toString('base64');
+
+      //   const buffer = Buffer.from(str, "base64");
+
+      //   return buffer;
+      // }
+
+      // var myBuffer = base64_encode(body.uri);
+      // console.log("buffer = " + myBuffer);
+
+      // uploadFile(files[0], myBuffer);
 
       console.log(body);
 
@@ -155,7 +173,11 @@ const paymentNotification = (req, res) => {
       });
       res.status(200).json({ msg: "Payment Notification sent successfully" });
     } catch (f) {
-      res.send(f.message);
+      console.log({
+        msg: "Payment Evidence Failed to Safe",
+      });
+
+      res.status(400).json({ msg: "Payment Evidence Failed to Safe" });
     }
 
     if (err instanceof multer.MulterError) {
