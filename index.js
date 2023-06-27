@@ -11,6 +11,7 @@ const loginRoute = require("./routes/loginRoute");
 const courseRoute = require("./routes/courseRoute");
 const courseFormRoute = require("./routes/courseFormRoute");
 const paymentRoute = require("./routes/paymentRoute");
+const paymentUpload = require("./routes/paymentUploadRoute");
 const paymentRouteTwo = require("./routes/paymentRouteTwo");
 const walletHistoryRoute = require("./routes/walletHistoryRoute");
 const feeListRoute = require("./routes/feeListRoute");
@@ -49,6 +50,8 @@ app.use("/courseform", courseFormRoute);
 app.use("/paymentNotification", paymentRoute);
 
 app.use("/paymentNotificationTwo", paymentRouteTwo);
+
+app.use("/paymentUpload", paymentUpload);
 
 app.use("/wallet", walletHistoryRoute);
 
