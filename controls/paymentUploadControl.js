@@ -19,6 +19,7 @@ const paymentNotification = async (req, res) => {
     } = req.body;
     const ext = req.file.mimetype.split("/")[1];
     const cloudresult = await cloudinary.uploader.upload(req.file.path, {
+      folder: "schoolPortal/images/paymentEvidence",
       public_id: `PayEvi-${payId}-${req.file.originalname}.${ext}`,
       width: 500,
       height: 500,
