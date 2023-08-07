@@ -1,5 +1,5 @@
-const { default: mongoose } = require('mongoose')
-const walletHistoryModel = require('../models/walletHistoryModel')
+const { default: mongoose } = require("mongoose");
+const walletHistoryModel = require("../models/walletHistoryModel");
 
 const fundWallet = async (req, res) => {
   const {
@@ -11,17 +11,19 @@ const fundWallet = async (req, res) => {
     txnType,
     balanceBefore,
     walletBalance,
-  } = req.body
+  } = req.body;
 
   walletHistoryModel.find(
     { $or: [{ payment: payment }, { paymentRef: paymentRef }] },
     (err, result) => {
       if (result === null || result.length != 0) {
         console.log({
-          msg: 'Payment already exist on wallet history',
+          msg: "Payment already exist on wallet history",
           result,
-        })
-        res.status(400).json({ msg: 'Payment already exist on wallet history' })
+        });
+        res
+          .status(400)
+          .json({ msg: "Payment already exist on wallet history" });
       } else {
         walletHistoryModel.create(
           {
@@ -39,147 +41,141 @@ const fundWallet = async (req, res) => {
               console.log({
                 msg: `Unable to fund wallet `,
                 err,
-              })
-              res.status(400).json({ msg: `Unable to fund wallet `, err })
+              });
+              res.status(400).json({ msg: `Unable to fund wallet `, err });
             } else {
               console.log({
                 msg: `Wallet funded successful `,
                 data,
-              })
-              res.status(200).json({ msg: `Wallet funded successful ` })
+              });
+              res.status(200).json({ msg: `Wallet funded successful ` });
             }
-          },
-        )
+          }
+        );
       }
-    },
-  )
-}
+    }
+  );
+};
 
 const walletBalance = async (req, res) => {
-  const { walletId } = req.params
+  const { walletId } = req.params;
   walletHistoryModel
     .find({ walletId: walletId })
     .limit(1)
     .sort({ $natural: -1 })
     .then((response) => {
       if (response.length < 1) {
-        response = [{ walletBalance: { $numberDecimal: 0.0 } }]
-        console.log({ msg: 'Wallet Balance fetched ', response })
-        res.status(200).json({ msg: 'Wallet Balance fetched', response })
+        response = [{ walletBalance: { $numberDecimal: 0.0 } }];
+        console.log({ msg: "Wallet Balance fetched ", response });
+        res.status(200).json({ msg: "Wallet Balance fetched", response });
       } else {
-        console.log({ msg: 'Wallet Balance fetched ', response })
-        res.status(200).json({ msg: 'Wallet Balance fetched', response })
+        console.log({ msg: "Wallet Balance fetched ", response });
+        res.status(200).json({ msg: "Wallet Balance fetched", response });
       }
     })
     .catch((err) => {
-      console.log({ msg: 'No wallet record found', err })
-      res.status(400).json({ msg: 'No wallet record found', err })
-    })
-}
+      console.log({ msg: "No wallet record found", err });
+      res.status(400).json({ msg: "No wallet record found", err });
+    });
+};
 
 const studentWalletHistory = async (req, res) => {
-  const { walletId } = req.params
+  const { walletId } = req.params;
   walletHistoryModel
     .find({ walletId: walletId })
-    .populate('payment')
+    .populate("payment")
     .exec((error, result) => {
       if (result == null) {
-        console.log({ msg: `No wallet history found `, error })
-        res.status(400).json({ msg: `No wallet history found`, error })
+        console.log({ msg: `No wallet history found `, error });
+        res.status(400).json({ msg: `No wallet history found`, error });
       } else {
-        console.log({ msg: `Wallet fetched `, result })
-        res.status(200).json({ msg: `Wallet fetched `, result })
+        console.log({ msg: `Wallet fetched `, result });
+        res.status(200).json({ msg: `Wallet fetched `, result });
       }
-    })
-}
+    });
+};
 
 const adminWalletHistory = async (req, res) => {
   walletHistoryModel
     .find()
-    .populate('payment')
+    .populate("payment")
     .exec((error, result) => {
       if (result == null) {
-        console.log({ msg: `No wallet history found `, error })
-        res.status(400).json({ msg: `No wallet history found`, error })
+        console.log({ msg: `No wallet history found `, error });
+        res.status(400).json({ msg: `No wallet history found`, error });
       } else {
-        console.log({ msg: `Wallet fetched `, result })
-        res.status(200).json({ msg: `Wallet fetched `, result })
+        console.log({ msg: `Wallet fetched `, result });
+        res.status(200).json({ msg: `Wallet fetched `, result });
       }
-    })
-}
+    });
+};
 
 const filterWalletHistory = async (req, res) => {
-  const {
-    walletId,
-    paymentId,
-    txnType,
-    paymentType,
-    fromDate,
-    toDate,
-  } = req.body
+  const { walletId, paymentId, txnType, paymentType, fromDate, toDate } =
+    req.body;
 
   const checkNull = [paymentId, txnType, paymentType, fromDate, toDate].every(
-    (element) => element === null || element === undefined,
-  )
+    (element) => element === null || element === undefined
+  );
   // filter by wallet Id
   if (walletId && checkNull) {
     walletHistoryModel
       .find({ walletId: walletId })
-      .populate('payment')
+      .populate("payment")
       .exec((error, result) => {
         if (result == null) {
-          console.log({ msg: `No wallet history found `, error })
-          res.status(400).json({ msg: `No wallet history found`, error })
+          console.log({ msg: `No wallet history found `, error });
+          res.status(400).json({ msg: `No wallet history found`, error });
         } else {
-          console.log({ msg: `Wallet fetched `, result })
-          res.status(200).json({ msg: `Wallet fetched `, result })
+          console.log({ msg: `Wallet fetched `, result });
+          res.status(200).json({ msg: `Wallet fetched `, result });
         }
-      })
+      });
   } else {
     const checkNull = [walletId, txnType, paymentType, fromDate, toDate].every(
-      (element) => element === null || element === undefined,
-    )
+      (element) => element === null || element === undefined
+    );
     // filter by payment
     if (paymentId && checkNull) {
       walletHistoryModel
         .aggregate([
           {
             $lookup: {
-              from: 'payments',
-              localField: 'payment',
-              foreignField: '_id',
-              as: 'paymentResult',
+              from: "payments",
+              localField: "payment",
+              foreignField: "_id",
+              as: "paymentResult",
             },
           },
         ])
         .exec((error, results) => {
           if (results == null) {
-            console.log({ msg: `No wallet history found `, error })
-            res.status(400).json({ msg: `No wallet history found`, error })
+            console.log({ msg: `No wallet history found `, error });
+            res.status(400).json({ msg: `No wallet history found`, error });
           } else {
             let result = results.find(
-              (wallet) => wallet.paymentResult[0].paymentId == paymentId,
-            )
-            const { payment } = result
+              (wallet) => wallet.paymentResult[0].paymentId == paymentId
+            );
+            const { payment } = result;
             walletHistoryModel
               .find({ payment: payment })
-              .populate('payment')
+              .populate("payment")
               .exec((error, result) => {
                 if (result == null) {
-                  console.log({ msg: `No wallet history found `, error })
+                  console.log({ msg: `No wallet history found `, error });
                   res
                     .status(400)
-                    .json({ msg: `No wallet history found`, error })
+                    .json({ msg: `No wallet history found`, error });
                 } else {
-                  console.log({ msg: `Wallet fetched `, result })
-                  res.status(200).json({ msg: `Wallet fetched `, result })
+                  console.log({ msg: `Wallet fetched `, result });
+                  res.status(200).json({ msg: `Wallet fetched `, result });
                 }
-              })
+              });
 
             // console.log({ msg: `Wallet fetched `, result: [result] })
             // res.status(200).json({ msg: `Wallet fetched `, result: [result] })
           }
-        })
+        });
     } else {
       const checkNull = [
         walletId,
@@ -187,22 +183,22 @@ const filterWalletHistory = async (req, res) => {
         paymentType,
         fromDate,
         toDate,
-      ].every((element) => element === null || element === undefined)
+      ].every((element) => element === null || element === undefined);
 
       // filter by txn type
       if (txnType && checkNull) {
         walletHistoryModel
           .find({ txnType: txnType })
-          .populate('payment')
+          .populate("payment")
           .exec((error, result) => {
             if (result == null) {
-              console.log({ msg: `No wallet history found `, error })
-              res.status(400).json({ msg: `No wallet history found`, error })
+              console.log({ msg: `No wallet history found `, error });
+              res.status(400).json({ msg: `No wallet history found`, error });
             } else {
-              console.log({ msg: `Wallet fetched `, result })
-              res.status(200).json({ msg: `Wallet fetched `, result })
+              console.log({ msg: `Wallet fetched `, result });
+              res.status(200).json({ msg: `Wallet fetched `, result });
             }
-          })
+          });
       } else {
         const checkNull = [
           walletId,
@@ -210,26 +206,26 @@ const filterWalletHistory = async (req, res) => {
           txnType,
           fromDate,
           toDate,
-        ].every((element) => element === null || element === undefined)
+        ].every((element) => element === null || element === undefined);
 
         // filter by payment type
         if (paymentType && checkNull) {
           walletHistoryModel
             .find({ paymentType: paymentType })
-            .populate('payment')
+            .populate("payment")
             .exec((error, result) => {
               if (result == null) {
-                console.log({ msg: `No wallet history found `, error })
-                res.status(400).json({ msg: `No wallet history found`, error })
+                console.log({ msg: `No wallet history found `, error });
+                res.status(400).json({ msg: `No wallet history found`, error });
               } else {
-                console.log({ msg: `Wallet fetched `, result })
-                res.status(200).json({ msg: `Wallet fetched `, result })
+                console.log({ msg: `Wallet fetched `, result });
+                res.status(200).json({ msg: `Wallet fetched `, result });
               }
-            })
+            });
         } else {
           const checkNull = [walletId, paymentId, txnType, paymentType].every(
-            (element) => element === null || element === undefined,
-          )
+            (element) => element === null || element === undefined
+          );
 
           // filter by date
           if (fromDate && toDate && checkNull) {
@@ -240,22 +236,22 @@ const filterWalletHistory = async (req, res) => {
                   { updatedAt: { $lte: toDate } },
                 ],
               })
-              .populate('payment')
+              .populate("payment")
               .exec((error, result) => {
                 if (result == null) {
-                  console.log({ msg: `No wallet history found `, error })
+                  console.log({ msg: `No wallet history found `, error });
                   res
                     .status(400)
-                    .json({ msg: `No wallet history found`, error })
+                    .json({ msg: `No wallet history found`, error });
                 } else {
-                  console.log({ msg: `Wallet fetched `, result })
-                  res.status(200).json({ msg: `Wallet fetched `, result })
+                  console.log({ msg: `Wallet fetched `, result });
+                  res.status(200).json({ msg: `Wallet fetched `, result });
                 }
-              })
+              });
           } else {
             const checkNull = [paymentId, txnType, paymentType].every(
-              (element) => element === null || element === undefined,
-            )
+              (element) => element === null || element === undefined
+            );
 
             // filter by wallet Id and date
             if (walletId && fromDate && toDate && checkNull) {
@@ -267,22 +263,22 @@ const filterWalletHistory = async (req, res) => {
                     { updatedAt: { $lte: toDate } },
                   ],
                 })
-                .populate('payment')
+                .populate("payment")
                 .exec((error, result) => {
                   if (result == null) {
-                    console.log({ msg: `No wallet history found `, error })
+                    console.log({ msg: `No wallet history found `, error });
                     res
                       .status(400)
-                      .json({ msg: `No wallet history found`, error })
+                      .json({ msg: `No wallet history found`, error });
                   } else {
-                    console.log({ msg: `Wallet fetched `, result })
-                    res.status(200).json({ msg: `Wallet fetched `, result })
+                    console.log({ msg: `Wallet fetched `, result });
+                    res.status(200).json({ msg: `Wallet fetched `, result });
                   }
-                })
+                });
             } else {
               const checkNull = [walletId, txnType, paymentType].every(
-                (element) => element === null || element === undefined,
-              )
+                (element) => element === null || element === undefined
+              );
 
               // filter by payment Id and date
               if (paymentId && fromDate && toDate && checkNull) {
@@ -290,25 +286,25 @@ const filterWalletHistory = async (req, res) => {
                   .aggregate([
                     {
                       $lookup: {
-                        from: 'payments',
-                        localField: 'payment',
-                        foreignField: '_id',
-                        as: 'paymentResult',
+                        from: "payments",
+                        localField: "payment",
+                        foreignField: "_id",
+                        as: "paymentResult",
                       },
                     },
                   ])
                   .exec((error, results) => {
                     if (results == null) {
-                      console.log({ msg: `No wallet history found `, error })
+                      console.log({ msg: `No wallet history found `, error });
                       res
                         .status(400)
-                        .json({ msg: `No wallet history found`, error })
+                        .json({ msg: `No wallet history found`, error });
                     } else {
                       let result = results.find(
                         (wallet) =>
-                          wallet.paymentResult[0].paymentId == paymentId,
-                      )
-                      const { payment } = result
+                          wallet.paymentResult[0].paymentId == paymentId
+                      );
+                      const { payment } = result;
 
                       walletHistoryModel
                         .find({
@@ -318,32 +314,32 @@ const filterWalletHistory = async (req, res) => {
                             { updatedAt: { $lte: toDate } },
                           ],
                         })
-                        .populate('payment')
+                        .populate("payment")
                         .exec((error, result) => {
                           if (result == null) {
                             console.log({
                               msg: `No wallet history found `,
                               error,
-                            })
+                            });
                             res
                               .status(400)
-                              .json({ msg: `No wallet history found`, error })
+                              .json({ msg: `No wallet history found`, error });
                           } else {
-                            console.log({ msg: `Wallet fetched `, result })
+                            console.log({ msg: `Wallet fetched `, result });
                             res
                               .status(200)
-                              .json({ msg: `Wallet fetched `, result })
+                              .json({ msg: `Wallet fetched `, result });
                           }
-                        })
+                        });
                     }
-                  })
+                  });
               } else {
                 const checkNull = [
                   paymentId,
                   paymentType,
                   fromDate,
                   toDate,
-                ].every((element) => element === null || element === undefined)
+                ].every((element) => element === null || element === undefined);
 
                 // filter by wallet Id and txn type
                 if (walletId && txnType && checkNull) {
@@ -351,18 +347,20 @@ const filterWalletHistory = async (req, res) => {
                     .find({
                       $and: [{ walletId: walletId }, { txnType: txnType }],
                     })
-                    .populate('payment')
+                    .populate("payment")
                     .exec((error, result) => {
                       if (result == null) {
-                        console.log({ msg: `No wallet history found `, error })
+                        console.log({ msg: `No wallet history found `, error });
                         res
                           .status(400)
-                          .json({ msg: `No wallet history found`, error })
+                          .json({ msg: `No wallet history found`, error });
                       } else {
-                        console.log({ msg: `Wallet fetched `, result })
-                        res.status(200).json({ msg: `Wallet fetched `, result })
+                        console.log({ msg: `Wallet fetched `, result });
+                        res
+                          .status(200)
+                          .json({ msg: `Wallet fetched `, result });
                       }
-                    })
+                    });
                 } else {
                   const checkNull = [
                     paymentId,
@@ -370,8 +368,8 @@ const filterWalletHistory = async (req, res) => {
                     fromDate,
                     toDate,
                   ].every(
-                    (element) => element === null || element === undefined,
-                  )
+                    (element) => element === null || element === undefined
+                  );
 
                   // filter by wallet Id and payment type
                   if (walletId && paymentType && checkNull) {
@@ -382,23 +380,23 @@ const filterWalletHistory = async (req, res) => {
                           { paymentType: paymentType },
                         ],
                       })
-                      .populate('payment')
+                      .populate("payment")
                       .exec((error, result) => {
                         if (result == null) {
                           console.log({
                             msg: `No wallet history found `,
                             error,
-                          })
+                          });
                           res
                             .status(400)
-                            .json({ msg: `No wallet history found`, error })
+                            .json({ msg: `No wallet history found`, error });
                         } else {
-                          console.log({ msg: `Wallet fetched `, result })
+                          console.log({ msg: `Wallet fetched `, result });
                           res
                             .status(200)
-                            .json({ msg: `Wallet fetched `, result })
+                            .json({ msg: `Wallet fetched `, result });
                         }
-                      })
+                      });
                   } else {
                     const checkNull = [
                       walletId,
@@ -406,8 +404,8 @@ const filterWalletHistory = async (req, res) => {
                       fromDate,
                       toDate,
                     ].every(
-                      (element) => element === null || element === undefined,
-                    )
+                      (element) => element === null || element === undefined
+                    );
 
                     // filter by payment type and txn type
                     if (paymentType && txnType && checkNull) {
@@ -418,31 +416,31 @@ const filterWalletHistory = async (req, res) => {
                             { txnType: txnType },
                           ],
                         })
-                        .populate('payment')
+                        .populate("payment")
                         .exec((error, result) => {
                           if (result == null) {
                             console.log({
                               msg: `No wallet history found `,
                               error,
-                            })
+                            });
                             res
                               .status(400)
-                              .json({ msg: `No wallet history found`, error })
+                              .json({ msg: `No wallet history found`, error });
                           } else {
-                            console.log({ msg: `Wallet fetched `, result })
+                            console.log({ msg: `Wallet fetched `, result });
                             res
                               .status(200)
-                              .json({ msg: `Wallet fetched `, result })
+                              .json({ msg: `Wallet fetched `, result });
                           }
-                        })
+                        });
                     } else {
                       const checkNull = [
                         walletId,
                         paymentId,
                         paymentType,
                       ].every(
-                        (element) => element === null || element === undefined,
-                      )
+                        (element) => element === null || element === undefined
+                      );
 
                       // filter by txn type and date
                       if (txnType && fromDate && toDate && checkNull) {
@@ -454,28 +452,28 @@ const filterWalletHistory = async (req, res) => {
                               { updatedAt: { $lte: toDate } },
                             ],
                           })
-                          .populate('payment')
+                          .populate("payment")
                           .exec((error, result) => {
                             if (result == null) {
                               console.log({
                                 msg: `No wallet history found `,
                                 error,
-                              })
-                              res
-                                .status(400)
-                                .json({ msg: `No wallet history found`, error })
+                              });
+                              res.status(400).json({
+                                msg: `No wallet history found`,
+                                error,
+                              });
                             } else {
-                              console.log({ msg: `Wallet fetched `, result })
+                              console.log({ msg: `Wallet fetched `, result });
                               res
                                 .status(200)
-                                .json({ msg: `Wallet fetched `, result })
+                                .json({ msg: `Wallet fetched `, result });
                             }
-                          })
+                          });
                       } else {
                         const checkNull = [walletId, paymentId, txnType].every(
-                          (element) =>
-                            element === null || element === undefined,
-                        )
+                          (element) => element === null || element === undefined
+                        );
 
                         // filter by payment type and date
                         if (paymentType && fromDate && toDate && checkNull) {
@@ -487,29 +485,29 @@ const filterWalletHistory = async (req, res) => {
                                 { updatedAt: { $lte: toDate } },
                               ],
                             })
-                            .populate('payment')
+                            .populate("payment")
                             .exec((error, result) => {
                               if (result == null) {
                                 console.log({
                                   msg: `No wallet history found `,
                                   error,
-                                })
+                                });
                                 res.status(400).json({
                                   msg: `No wallet history found`,
                                   error,
-                                })
+                                });
                               } else {
-                                console.log({ msg: `Wallet fetched `, result })
+                                console.log({ msg: `Wallet fetched `, result });
                                 res
                                   .status(200)
-                                  .json({ msg: `Wallet fetched `, result })
+                                  .json({ msg: `Wallet fetched `, result });
                               }
-                            })
+                            });
                         } else {
                           const checkNull = [walletId, paymentId].every(
                             (element) =>
-                              element === null || element === undefined,
-                          )
+                              element === null || element === undefined
+                          );
 
                           // filter by txn type, payment type, and date
                           if (
@@ -528,32 +526,32 @@ const filterWalletHistory = async (req, res) => {
                                   { updatedAt: { $lte: toDate } },
                                 ],
                               })
-                              .populate('payment')
+                              .populate("payment")
                               .exec((error, result) => {
                                 if (result == null) {
                                   console.log({
                                     msg: `No wallet history found `,
                                     error,
-                                  })
+                                  });
                                   res.status(400).json({
                                     msg: `No wallet history found`,
                                     error,
-                                  })
+                                  });
                                 } else {
                                   console.log({
                                     msg: `Wallet fetched `,
                                     result,
-                                  })
+                                  });
                                   res
                                     .status(200)
-                                    .json({ msg: `Wallet fetched `, result })
+                                    .json({ msg: `Wallet fetched `, result });
                                 }
-                              })
+                              });
                           } else {
                             const checkNull = [txnType, paymentType].every(
                               (element) =>
-                                element === null || element === undefined,
-                            )
+                                element === null || element === undefined
+                            );
 
                             // filter by wallet id, payment id , and date
                             if (
@@ -567,10 +565,10 @@ const filterWalletHistory = async (req, res) => {
                                 .aggregate([
                                   {
                                     $lookup: {
-                                      from: 'payments',
-                                      localField: 'payment',
-                                      foreignField: '_id',
-                                      as: 'paymentResult',
+                                      from: "payments",
+                                      localField: "payment",
+                                      foreignField: "_id",
+                                      as: "paymentResult",
                                     },
                                   },
                                 ])
@@ -579,18 +577,18 @@ const filterWalletHistory = async (req, res) => {
                                     console.log({
                                       msg: `No wallet history found `,
                                       error,
-                                    })
+                                    });
                                     res.status(400).json({
                                       msg: `No wallet history found`,
                                       error,
-                                    })
+                                    });
                                   } else {
                                     let result = results.find(
                                       (wallet) =>
                                         wallet.paymentResult[0].paymentId ==
-                                        paymentId,
-                                    )
-                                    const { payment } = result
+                                        paymentId
+                                    );
+                                    const { payment } = result;
 
                                     walletHistoryModel
                                       .find({
@@ -601,30 +599,30 @@ const filterWalletHistory = async (req, res) => {
                                           { updatedAt: { $lte: toDate } },
                                         ],
                                       })
-                                      .populate('payment')
+                                      .populate("payment")
                                       .exec((error, result) => {
                                         if (result == null) {
                                           console.log({
                                             msg: `No wallet history found `,
                                             error,
-                                          })
+                                          });
                                           res.status(400).json({
                                             msg: `No wallet history found`,
                                             error,
-                                          })
+                                          });
                                         } else {
                                           console.log({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                           res.status(200).json({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                         }
-                                      })
+                                      });
                                   }
-                                })
+                                });
                             } else {
                               const checkNull = [
                                 paymentId,
@@ -632,8 +630,8 @@ const filterWalletHistory = async (req, res) => {
                                 toDate,
                               ].every(
                                 (element) =>
-                                  element === null || element === undefined,
-                              )
+                                  element === null || element === undefined
+                              );
 
                               // filter by wallet id, txn type, and payment type
                               if (
@@ -650,33 +648,33 @@ const filterWalletHistory = async (req, res) => {
                                       { paymentType: paymentType },
                                     ],
                                   })
-                                  .populate('payment')
+                                  .populate("payment")
                                   .exec((error, result) => {
                                     if (result == null) {
                                       console.log({
                                         msg: `No wallet history found `,
                                         error,
-                                      })
+                                      });
                                       res.status(400).json({
                                         msg: `No wallet history found`,
                                         error,
-                                      })
+                                      });
                                     } else {
                                       console.log({
                                         msg: `Wallet fetched `,
                                         result,
-                                      })
+                                      });
                                       res.status(200).json({
                                         msg: `Wallet fetched `,
                                         result,
-                                      })
+                                      });
                                     }
-                                  })
+                                  });
                               } else {
                                 const checkNull = [paymentId, txnType].every(
                                   (element) =>
-                                    element === null || element === undefined,
-                                )
+                                    element === null || element === undefined
+                                );
 
                                 // filter by wallet id, payment type, and date
                                 if (
@@ -695,36 +693,36 @@ const filterWalletHistory = async (req, res) => {
                                         { updatedAt: { $lte: toDate } },
                                       ],
                                     })
-                                    .populate('payment')
+                                    .populate("payment")
                                     .exec((error, result) => {
                                       if (result == null) {
                                         console.log({
                                           msg: `No wallet history found `,
                                           error,
-                                        })
+                                        });
                                         res.status(400).json({
                                           msg: `No wallet history found`,
                                           error,
-                                        })
+                                        });
                                       } else {
                                         console.log({
                                           msg: `Wallet fetched `,
                                           result,
-                                        })
+                                        });
                                         res.status(200).json({
                                           msg: `Wallet fetched `,
                                           result,
-                                        })
+                                        });
                                       }
-                                    })
+                                    });
                                 } else {
                                   const checkNull = [
                                     paymentId,
                                     paymentType,
                                   ].every(
                                     (element) =>
-                                      element === null || element === undefined,
-                                  )
+                                      element === null || element === undefined
+                                  );
 
                                   // filter by wallet id, txn type, and date
                                   if (
@@ -743,35 +741,35 @@ const filterWalletHistory = async (req, res) => {
                                           { updatedAt: { $lte: toDate } },
                                         ],
                                       })
-                                      .populate('payment')
+                                      .populate("payment")
                                       .exec((error, result) => {
                                         if (result == null) {
                                           console.log({
                                             msg: `No wallet history found `,
                                             error,
-                                          })
+                                          });
                                           res.status(400).json({
                                             msg: `No wallet history found`,
                                             error,
-                                          })
+                                          });
                                         } else {
                                           console.log({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                           res.status(200).json({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                         }
-                                      })
+                                      });
                                   } else {
                                     console.log({
                                       msg: `Invalid filter parameter selected`,
-                                    })
+                                    });
                                     res.status(400).json({
                                       msg: `Invalid filter parameter selected`,
-                                    })
+                                    });
                                   }
                                 }
                               }
@@ -789,30 +787,24 @@ const filterWalletHistory = async (req, res) => {
       }
     }
   }
-}
+};
 
 const filterForDownload = async (req, res) => {
-  const {
-    walletId,
-    paymentId,
-    txnType,
-    paymentType,
-    fromDate,
-    toDate,
-  } = req.body
+  const { walletId, paymentId, txnType, paymentType, fromDate, toDate } =
+    req.body;
 
   const checkNull = [paymentId, txnType, paymentType, fromDate, toDate].every(
-    (element) => element === null || element === undefined,
-  )
+    (element) => element === null || element === undefined
+  );
   // filter by wallet Id
   if (walletId && checkNull) {
     walletHistoryModel
       .find({ walletId: walletId })
-      .populate('payment')
+      .populate("payment")
       .exec((error, request) => {
         if (request == null) {
-          console.log({ msg: `No wallet history found `, error })
-          res.status(400).json({ msg: `No wallet history found`, error })
+          console.log({ msg: `No wallet history found `, error });
+          res.status(400).json({ msg: `No wallet history found`, error });
         } else {
           // for (let index = 0; index < request.length; index++) {
 
@@ -831,7 +823,7 @@ const filterForDownload = async (req, res) => {
               walletBalance,
               createdAt,
               updatedAt,
-            } = element
+            } = element;
 
             var result = {
               ...result,
@@ -849,50 +841,50 @@ const filterForDownload = async (req, res) => {
               balanceAfter: walletBalance,
               createdAt: createdAt,
               updatedAt: updatedAt,
-            }
+            };
 
-            return result
-          })
+            return result;
+          });
 
-          console.log({ msg: `Wallet fetched `, result })
-          res.status(200).json({ msg: `Wallet fetched `, result })
+          console.log({ msg: `Wallet fetched `, result });
+          res.status(200).json({ msg: `Wallet fetched `, result });
         }
-      })
+      });
   } else {
     const checkNull = [walletId, txnType, paymentType, fromDate, toDate].every(
-      (element) => element === null || element === undefined,
-    )
+      (element) => element === null || element === undefined
+    );
     // filter by payment
     if (paymentId && checkNull) {
       walletHistoryModel
         .aggregate([
           {
             $lookup: {
-              from: 'payments',
-              localField: 'payment',
-              foreignField: '_id',
-              as: 'paymentrequest',
+              from: "payments",
+              localField: "payment",
+              foreignField: "_id",
+              as: "paymentrequest",
             },
           },
         ])
         .exec((error, requests) => {
           if (requests == null) {
-            console.log({ msg: `No wallet history found `, error })
-            res.status(400).json({ msg: `No wallet history found`, error })
+            console.log({ msg: `No wallet history found `, error });
+            res.status(400).json({ msg: `No wallet history found`, error });
           } else {
             let request = requests.find(
-              (wallet) => wallet.paymentrequest[0].paymentId == paymentId,
-            )
-            const { payment } = request
+              (wallet) => wallet.paymentrequest[0].paymentId == paymentId
+            );
+            const { payment } = request;
             walletHistoryModel
               .find({ payment: payment })
-              .populate('payment')
+              .populate("payment")
               .exec((error, request) => {
                 if (request == null) {
-                  console.log({ msg: `No wallet history found `, error })
+                  console.log({ msg: `No wallet history found `, error });
                   res
                     .status(400)
-                    .json({ msg: `No wallet history found`, error })
+                    .json({ msg: `No wallet history found`, error });
                 } else {
                   var result = request.map((element, index) => {
                     var {
@@ -906,7 +898,7 @@ const filterForDownload = async (req, res) => {
                       walletBalance,
                       createdAt,
                       updatedAt,
-                    } = element
+                    } = element;
 
                     var result = {
                       ...result,
@@ -924,20 +916,20 @@ const filterForDownload = async (req, res) => {
                       balanceAfter: walletBalance,
                       createdAt: createdAt,
                       updatedAt: updatedAt,
-                    }
+                    };
 
-                    return result
-                  })
+                    return result;
+                  });
 
-                  console.log({ msg: `Wallet fetched `, result })
-                  res.status(200).json({ msg: `Wallet fetched `, result })
+                  console.log({ msg: `Wallet fetched `, result });
+                  res.status(200).json({ msg: `Wallet fetched `, result });
                 }
-              })
+              });
 
             // console.log({ msg: `Wallet fetched `, request: [request] })
             // res.status(200).json({ msg: `Wallet fetched `, request: [request] })
           }
-        })
+        });
     } else {
       const checkNull = [
         walletId,
@@ -945,17 +937,17 @@ const filterForDownload = async (req, res) => {
         paymentType,
         fromDate,
         toDate,
-      ].every((element) => element === null || element === undefined)
+      ].every((element) => element === null || element === undefined);
 
       // filter by txn type
       if (txnType && checkNull) {
         walletHistoryModel
           .find({ txnType: txnType })
-          .populate('payment')
+          .populate("payment")
           .exec((error, request) => {
             if (request == null) {
-              console.log({ msg: `No wallet history found `, error })
-              res.status(400).json({ msg: `No wallet history found`, error })
+              console.log({ msg: `No wallet history found `, error });
+              res.status(400).json({ msg: `No wallet history found`, error });
             } else {
               var result = request.map((element, index) => {
                 var {
@@ -969,7 +961,7 @@ const filterForDownload = async (req, res) => {
                   walletBalance,
                   createdAt,
                   updatedAt,
-                } = element
+                } = element;
 
                 var result = {
                   ...result,
@@ -987,15 +979,15 @@ const filterForDownload = async (req, res) => {
                   balanceAfter: walletBalance,
                   createdAt: createdAt,
                   updatedAt: updatedAt,
-                }
+                };
 
-                return result
-              })
+                return result;
+              });
 
-              console.log({ msg: `Wallet fetched `, result })
-              res.status(200).json({ msg: `Wallet fetched `, result })
+              console.log({ msg: `Wallet fetched `, result });
+              res.status(200).json({ msg: `Wallet fetched `, result });
             }
-          })
+          });
       } else {
         const checkNull = [
           walletId,
@@ -1003,17 +995,17 @@ const filterForDownload = async (req, res) => {
           txnType,
           fromDate,
           toDate,
-        ].every((element) => element === null || element === undefined)
+        ].every((element) => element === null || element === undefined);
 
         // filter by payment type
         if (paymentType && checkNull) {
           walletHistoryModel
             .find({ paymentType: paymentType })
-            .populate('payment')
+            .populate("payment")
             .exec((error, request) => {
               if (request == null) {
-                console.log({ msg: `No wallet history found `, error })
-                res.status(400).json({ msg: `No wallet history found`, error })
+                console.log({ msg: `No wallet history found `, error });
+                res.status(400).json({ msg: `No wallet history found`, error });
               } else {
                 var result = request.map((element, index) => {
                   var {
@@ -1027,7 +1019,7 @@ const filterForDownload = async (req, res) => {
                     walletBalance,
                     createdAt,
                     updatedAt,
-                  } = element
+                  } = element;
 
                   var result = {
                     ...result,
@@ -1045,19 +1037,19 @@ const filterForDownload = async (req, res) => {
                     balanceAfter: walletBalance,
                     createdAt: createdAt,
                     updatedAt: updatedAt,
-                  }
+                  };
 
-                  return result
-                })
+                  return result;
+                });
 
-                console.log({ msg: `Wallet fetched `, result })
-                res.status(200).json({ msg: `Wallet fetched `, result })
+                console.log({ msg: `Wallet fetched `, result });
+                res.status(200).json({ msg: `Wallet fetched `, result });
               }
-            })
+            });
         } else {
           const checkNull = [walletId, paymentId, txnType, paymentType].every(
-            (element) => element === null || element === undefined,
-          )
+            (element) => element === null || element === undefined
+          );
 
           // filter by date
           if (fromDate && toDate && checkNull) {
@@ -1068,13 +1060,13 @@ const filterForDownload = async (req, res) => {
                   { updatedAt: { $lte: toDate } },
                 ],
               })
-              .populate('payment')
+              .populate("payment")
               .exec((error, request) => {
                 if (request == null) {
-                  console.log({ msg: `No wallet history found `, error })
+                  console.log({ msg: `No wallet history found `, error });
                   res
                     .status(400)
-                    .json({ msg: `No wallet history found`, error })
+                    .json({ msg: `No wallet history found`, error });
                 } else {
                   var result = request.map((element, index) => {
                     var {
@@ -1088,7 +1080,7 @@ const filterForDownload = async (req, res) => {
                       walletBalance,
                       createdAt,
                       updatedAt,
-                    } = element
+                    } = element;
 
                     var result = {
                       ...result,
@@ -1106,19 +1098,19 @@ const filterForDownload = async (req, res) => {
                       balanceAfter: walletBalance,
                       createdAt: createdAt,
                       updatedAt: updatedAt,
-                    }
+                    };
 
-                    return result
-                  })
+                    return result;
+                  });
 
-                  console.log({ msg: `Wallet fetched `, result })
-                  res.status(200).json({ msg: `Wallet fetched `, result })
+                  console.log({ msg: `Wallet fetched `, result });
+                  res.status(200).json({ msg: `Wallet fetched `, result });
                 }
-              })
+              });
           } else {
             const checkNull = [paymentId, txnType, paymentType].every(
-              (element) => element === null || element === undefined,
-            )
+              (element) => element === null || element === undefined
+            );
 
             // filter by wallet Id and date
             if (walletId && fromDate && toDate && checkNull) {
@@ -1130,13 +1122,13 @@ const filterForDownload = async (req, res) => {
                     { updatedAt: { $lte: toDate } },
                   ],
                 })
-                .populate('payment')
+                .populate("payment")
                 .exec((error, request) => {
                   if (request == null) {
-                    console.log({ msg: `No wallet history found `, error })
+                    console.log({ msg: `No wallet history found `, error });
                     res
                       .status(400)
-                      .json({ msg: `No wallet history found`, error })
+                      .json({ msg: `No wallet history found`, error });
                   } else {
                     var result = request.map((element, index) => {
                       var {
@@ -1150,7 +1142,7 @@ const filterForDownload = async (req, res) => {
                         walletBalance,
                         createdAt,
                         updatedAt,
-                      } = element
+                      } = element;
 
                       var result = {
                         ...result,
@@ -1168,19 +1160,19 @@ const filterForDownload = async (req, res) => {
                         balanceAfter: walletBalance,
                         createdAt: createdAt,
                         updatedAt: updatedAt,
-                      }
+                      };
 
-                      return result
-                    })
+                      return result;
+                    });
 
-                    console.log({ msg: `Wallet fetched `, result })
-                    res.status(200).json({ msg: `Wallet fetched `, result })
+                    console.log({ msg: `Wallet fetched `, result });
+                    res.status(200).json({ msg: `Wallet fetched `, result });
                   }
-                })
+                });
             } else {
               const checkNull = [walletId, txnType, paymentType].every(
-                (element) => element === null || element === undefined,
-              )
+                (element) => element === null || element === undefined
+              );
 
               // filter by payment Id and date
               if (paymentId && fromDate && toDate && checkNull) {
@@ -1188,25 +1180,25 @@ const filterForDownload = async (req, res) => {
                   .aggregate([
                     {
                       $lookup: {
-                        from: 'payments',
-                        localField: 'payment',
-                        foreignField: '_id',
-                        as: 'paymentrequest',
+                        from: "payments",
+                        localField: "payment",
+                        foreignField: "_id",
+                        as: "paymentrequest",
                       },
                     },
                   ])
                   .exec((error, requests) => {
                     if (requests == null) {
-                      console.log({ msg: `No wallet history found `, error })
+                      console.log({ msg: `No wallet history found `, error });
                       res
                         .status(400)
-                        .json({ msg: `No wallet history found`, error })
+                        .json({ msg: `No wallet history found`, error });
                     } else {
                       let request = requests.find(
                         (wallet) =>
-                          wallet.paymentrequest[0].paymentId == paymentId,
-                      )
-                      const { payment } = request
+                          wallet.paymentrequest[0].paymentId == paymentId
+                      );
+                      const { payment } = request;
 
                       walletHistoryModel
                         .find({
@@ -1216,16 +1208,16 @@ const filterForDownload = async (req, res) => {
                             { updatedAt: { $lte: toDate } },
                           ],
                         })
-                        .populate('payment')
+                        .populate("payment")
                         .exec((error, request) => {
                           if (request == null) {
                             console.log({
                               msg: `No wallet history found `,
                               error,
-                            })
+                            });
                             res
                               .status(400)
-                              .json({ msg: `No wallet history found`, error })
+                              .json({ msg: `No wallet history found`, error });
                           } else {
                             var result = request.map((element, index) => {
                               var {
@@ -1239,7 +1231,7 @@ const filterForDownload = async (req, res) => {
                                 walletBalance,
                                 createdAt,
                                 updatedAt,
-                              } = element
+                              } = element;
 
                               var result = {
                                 ...result,
@@ -1257,26 +1249,26 @@ const filterForDownload = async (req, res) => {
                                 balanceAfter: walletBalance,
                                 createdAt: createdAt,
                                 updatedAt: updatedAt,
-                              }
+                              };
 
-                              return result
-                            })
+                              return result;
+                            });
 
-                            console.log({ msg: `Wallet fetched `, result })
+                            console.log({ msg: `Wallet fetched `, result });
                             res
                               .status(200)
-                              .json({ msg: `Wallet fetched `, result })
+                              .json({ msg: `Wallet fetched `, result });
                           }
-                        })
+                        });
                     }
-                  })
+                  });
               } else {
                 const checkNull = [
                   paymentId,
                   paymentType,
                   fromDate,
                   toDate,
-                ].every((element) => element === null || element === undefined)
+                ].every((element) => element === null || element === undefined);
 
                 // filter by wallet Id and txn type
                 if (walletId && txnType && checkNull) {
@@ -1284,13 +1276,13 @@ const filterForDownload = async (req, res) => {
                     .find({
                       $and: [{ walletId: walletId }, { txnType: txnType }],
                     })
-                    .populate('payment')
+                    .populate("payment")
                     .exec((error, request) => {
                       if (request == null) {
-                        console.log({ msg: `No wallet history found `, error })
+                        console.log({ msg: `No wallet history found `, error });
                         res
                           .status(400)
-                          .json({ msg: `No wallet history found`, error })
+                          .json({ msg: `No wallet history found`, error });
                       } else {
                         var result = request.map((element, index) => {
                           var {
@@ -1304,7 +1296,7 @@ const filterForDownload = async (req, res) => {
                             walletBalance,
                             createdAt,
                             updatedAt,
-                          } = element
+                          } = element;
 
                           var result = {
                             ...result,
@@ -1322,15 +1314,17 @@ const filterForDownload = async (req, res) => {
                             balanceAfter: walletBalance,
                             createdAt: createdAt,
                             updatedAt: updatedAt,
-                          }
+                          };
 
-                          return result
-                        })
+                          return result;
+                        });
 
-                        console.log({ msg: `Wallet fetched `, result })
-                        res.status(200).json({ msg: `Wallet fetched `, result })
+                        console.log({ msg: `Wallet fetched `, result });
+                        res
+                          .status(200)
+                          .json({ msg: `Wallet fetched `, result });
                       }
-                    })
+                    });
                 } else {
                   const checkNull = [
                     paymentId,
@@ -1338,8 +1332,8 @@ const filterForDownload = async (req, res) => {
                     fromDate,
                     toDate,
                   ].every(
-                    (element) => element === null || element === undefined,
-                  )
+                    (element) => element === null || element === undefined
+                  );
 
                   // filter by wallet Id and payment type
                   if (walletId && paymentType && checkNull) {
@@ -1350,16 +1344,16 @@ const filterForDownload = async (req, res) => {
                           { paymentType: paymentType },
                         ],
                       })
-                      .populate('payment')
+                      .populate("payment")
                       .exec((error, request) => {
                         if (request == null) {
                           console.log({
                             msg: `No wallet history found `,
                             error,
-                          })
+                          });
                           res
                             .status(400)
-                            .json({ msg: `No wallet history found`, error })
+                            .json({ msg: `No wallet history found`, error });
                         } else {
                           var result = request.map((element, index) => {
                             var {
@@ -1373,7 +1367,7 @@ const filterForDownload = async (req, res) => {
                               walletBalance,
                               createdAt,
                               updatedAt,
-                            } = element
+                            } = element;
 
                             var result = {
                               ...result,
@@ -1391,17 +1385,17 @@ const filterForDownload = async (req, res) => {
                               balanceAfter: walletBalance,
                               createdAt: createdAt,
                               updatedAt: updatedAt,
-                            }
+                            };
 
-                            return result
-                          })
+                            return result;
+                          });
 
-                          console.log({ msg: `Wallet fetched `, result })
+                          console.log({ msg: `Wallet fetched `, result });
                           res
                             .status(200)
-                            .json({ msg: `Wallet fetched `, result })
+                            .json({ msg: `Wallet fetched `, result });
                         }
-                      })
+                      });
                   } else {
                     const checkNull = [
                       walletId,
@@ -1409,8 +1403,8 @@ const filterForDownload = async (req, res) => {
                       fromDate,
                       toDate,
                     ].every(
-                      (element) => element === null || element === undefined,
-                    )
+                      (element) => element === null || element === undefined
+                    );
 
                     // filter by payment type and txn type
                     if (paymentType && txnType && checkNull) {
@@ -1421,16 +1415,16 @@ const filterForDownload = async (req, res) => {
                             { txnType: txnType },
                           ],
                         })
-                        .populate('payment')
+                        .populate("payment")
                         .exec((error, request) => {
                           if (request == null) {
                             console.log({
                               msg: `No wallet history found `,
                               error,
-                            })
+                            });
                             res
                               .status(400)
-                              .json({ msg: `No wallet history found`, error })
+                              .json({ msg: `No wallet history found`, error });
                           } else {
                             var result = request.map((element, index) => {
                               var {
@@ -1444,7 +1438,7 @@ const filterForDownload = async (req, res) => {
                                 walletBalance,
                                 createdAt,
                                 updatedAt,
-                              } = element
+                              } = element;
 
                               var result = {
                                 ...result,
@@ -1462,25 +1456,25 @@ const filterForDownload = async (req, res) => {
                                 balanceAfter: walletBalance,
                                 createdAt: createdAt,
                                 updatedAt: updatedAt,
-                              }
+                              };
 
-                              return result
-                            })
+                              return result;
+                            });
 
-                            console.log({ msg: `Wallet fetched `, result })
+                            console.log({ msg: `Wallet fetched `, result });
                             res
                               .status(200)
-                              .json({ msg: `Wallet fetched `, result })
+                              .json({ msg: `Wallet fetched `, result });
                           }
-                        })
+                        });
                     } else {
                       const checkNull = [
                         walletId,
                         paymentId,
                         paymentType,
                       ].every(
-                        (element) => element === null || element === undefined,
-                      )
+                        (element) => element === null || element === undefined
+                      );
 
                       // filter by txn type and date
                       if (txnType && fromDate && toDate && checkNull) {
@@ -1492,16 +1486,17 @@ const filterForDownload = async (req, res) => {
                               { updatedAt: { $lte: toDate } },
                             ],
                           })
-                          .populate('payment')
+                          .populate("payment")
                           .exec((error, request) => {
                             if (request == null) {
                               console.log({
                                 msg: `No wallet history found `,
                                 error,
-                              })
-                              res
-                                .status(400)
-                                .json({ msg: `No wallet history found`, error })
+                              });
+                              res.status(400).json({
+                                msg: `No wallet history found`,
+                                error,
+                              });
                             } else {
                               var result = request.map((element, index) => {
                                 var {
@@ -1515,7 +1510,7 @@ const filterForDownload = async (req, res) => {
                                   walletBalance,
                                   createdAt,
                                   updatedAt,
-                                } = element
+                                } = element;
 
                                 var result = {
                                   ...result,
@@ -1533,22 +1528,21 @@ const filterForDownload = async (req, res) => {
                                   balanceAfter: walletBalance,
                                   createdAt: createdAt,
                                   updatedAt: updatedAt,
-                                }
+                                };
 
-                                return result
-                              })
+                                return result;
+                              });
 
-                              console.log({ msg: `Wallet fetched `, result })
+                              console.log({ msg: `Wallet fetched `, result });
                               res
                                 .status(200)
-                                .json({ msg: `Wallet fetched `, result })
+                                .json({ msg: `Wallet fetched `, result });
                             }
-                          })
+                          });
                       } else {
                         const checkNull = [walletId, paymentId, txnType].every(
-                          (element) =>
-                            element === null || element === undefined,
-                        )
+                          (element) => element === null || element === undefined
+                        );
 
                         // filter by payment type and date
                         if (paymentType && fromDate && toDate && checkNull) {
@@ -1560,17 +1554,17 @@ const filterForDownload = async (req, res) => {
                                 { updatedAt: { $lte: toDate } },
                               ],
                             })
-                            .populate('payment')
+                            .populate("payment")
                             .exec((error, request) => {
                               if (request == null) {
                                 console.log({
                                   msg: `No wallet history found `,
                                   error,
-                                })
+                                });
                                 res.status(400).json({
                                   msg: `No wallet history found`,
                                   error,
-                                })
+                                });
                               } else {
                                 var result = request.map((element, index) => {
                                   var {
@@ -1584,7 +1578,7 @@ const filterForDownload = async (req, res) => {
                                     walletBalance,
                                     createdAt,
                                     updatedAt,
-                                  } = element
+                                  } = element;
 
                                   var result = {
                                     ...result,
@@ -1602,22 +1596,22 @@ const filterForDownload = async (req, res) => {
                                     balanceAfter: walletBalance,
                                     createdAt: createdAt,
                                     updatedAt: updatedAt,
-                                  }
+                                  };
 
-                                  return result
-                                })
+                                  return result;
+                                });
 
-                                console.log({ msg: `Wallet fetched `, result })
+                                console.log({ msg: `Wallet fetched `, result });
                                 res
                                   .status(200)
-                                  .json({ msg: `Wallet fetched `, result })
+                                  .json({ msg: `Wallet fetched `, result });
                               }
-                            })
+                            });
                         } else {
                           const checkNull = [walletId, paymentId].every(
                             (element) =>
-                              element === null || element === undefined,
-                          )
+                              element === null || element === undefined
+                          );
 
                           // filter by txn type, payment type, and date
                           if (
@@ -1636,17 +1630,17 @@ const filterForDownload = async (req, res) => {
                                   { updatedAt: { $lte: toDate } },
                                 ],
                               })
-                              .populate('payment')
+                              .populate("payment")
                               .exec((error, request) => {
                                 if (request == null) {
                                   console.log({
                                     msg: `No wallet history found `,
                                     error,
-                                  })
+                                  });
                                   res.status(400).json({
                                     msg: `No wallet history found`,
                                     error,
-                                  })
+                                  });
                                 } else {
                                   var result = request.map((element, index) => {
                                     var {
@@ -1660,7 +1654,7 @@ const filterForDownload = async (req, res) => {
                                       walletBalance,
                                       createdAt,
                                       updatedAt,
-                                    } = element
+                                    } = element;
 
                                     var result = {
                                       ...result,
@@ -1678,25 +1672,25 @@ const filterForDownload = async (req, res) => {
                                       balanceAfter: walletBalance,
                                       createdAt: createdAt,
                                       updatedAt: updatedAt,
-                                    }
+                                    };
 
-                                    return result
-                                  })
+                                    return result;
+                                  });
 
                                   console.log({
                                     msg: `Wallet fetched `,
                                     result,
-                                  })
+                                  });
                                   res
                                     .status(200)
-                                    .json({ msg: `Wallet fetched `, result })
+                                    .json({ msg: `Wallet fetched `, result });
                                 }
-                              })
+                              });
                           } else {
                             const checkNull = [txnType, paymentType].every(
                               (element) =>
-                                element === null || element === undefined,
-                            )
+                                element === null || element === undefined
+                            );
 
                             // filter by wallet id, payment id , and date
                             if (
@@ -1710,10 +1704,10 @@ const filterForDownload = async (req, res) => {
                                 .aggregate([
                                   {
                                     $lookup: {
-                                      from: 'payments',
-                                      localField: 'payment',
-                                      foreignField: '_id',
-                                      as: 'paymentrequest',
+                                      from: "payments",
+                                      localField: "payment",
+                                      foreignField: "_id",
+                                      as: "paymentrequest",
                                     },
                                   },
                                 ])
@@ -1722,18 +1716,18 @@ const filterForDownload = async (req, res) => {
                                     console.log({
                                       msg: `No wallet history found `,
                                       error,
-                                    })
+                                    });
                                     res.status(400).json({
                                       msg: `No wallet history found`,
                                       error,
-                                    })
+                                    });
                                   } else {
                                     let request = requests.find(
                                       (wallet) =>
                                         wallet.paymentrequest[0].paymentId ==
-                                        paymentId,
-                                    )
-                                    const { payment } = request
+                                        paymentId
+                                    );
+                                    const { payment } = request;
 
                                     walletHistoryModel
                                       .find({
@@ -1744,17 +1738,17 @@ const filterForDownload = async (req, res) => {
                                           { updatedAt: { $lte: toDate } },
                                         ],
                                       })
-                                      .populate('payment')
+                                      .populate("payment")
                                       .exec((error, request) => {
                                         if (request == null) {
                                           console.log({
                                             msg: `No wallet history found `,
                                             error,
-                                          })
+                                          });
                                           res.status(400).json({
                                             msg: `No wallet history found`,
                                             error,
-                                          })
+                                          });
                                         } else {
                                           var result = request.map(
                                             (element, index) => {
@@ -1769,7 +1763,7 @@ const filterForDownload = async (req, res) => {
                                                 walletBalance,
                                                 createdAt,
                                                 updatedAt,
-                                              } = element
+                                              } = element;
 
                                               var result = {
                                                 ...result,
@@ -1787,24 +1781,24 @@ const filterForDownload = async (req, res) => {
                                                 balanceAfter: walletBalance,
                                                 createdAt: createdAt,
                                                 updatedAt: updatedAt,
-                                              }
+                                              };
 
-                                              return result
-                                            },
-                                          )
+                                              return result;
+                                            }
+                                          );
 
                                           console.log({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                           res.status(200).json({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                         }
-                                      })
+                                      });
                                   }
-                                })
+                                });
                             } else {
                               const checkNull = [
                                 paymentId,
@@ -1812,8 +1806,8 @@ const filterForDownload = async (req, res) => {
                                 toDate,
                               ].every(
                                 (element) =>
-                                  element === null || element === undefined,
-                              )
+                                  element === null || element === undefined
+                              );
 
                               // filter by wallet id, txn type, and payment type
                               if (
@@ -1830,17 +1824,17 @@ const filterForDownload = async (req, res) => {
                                       { paymentType: paymentType },
                                     ],
                                   })
-                                  .populate('payment')
+                                  .populate("payment")
                                   .exec((error, request) => {
                                     if (request == null) {
                                       console.log({
                                         msg: `No wallet history found `,
                                         error,
-                                      })
+                                      });
                                       res.status(400).json({
                                         msg: `No wallet history found`,
                                         error,
-                                      })
+                                      });
                                     } else {
                                       var result = request.map(
                                         (element, index) => {
@@ -1855,7 +1849,7 @@ const filterForDownload = async (req, res) => {
                                             walletBalance,
                                             createdAt,
                                             updatedAt,
-                                          } = element
+                                          } = element;
 
                                           var result = {
                                             ...result,
@@ -1873,27 +1867,27 @@ const filterForDownload = async (req, res) => {
                                             balanceAfter: walletBalance,
                                             createdAt: createdAt,
                                             updatedAt: updatedAt,
-                                          }
+                                          };
 
-                                          return result
-                                        },
-                                      )
+                                          return result;
+                                        }
+                                      );
 
                                       console.log({
                                         msg: `Wallet fetched `,
                                         result,
-                                      })
+                                      });
                                       res.status(200).json({
                                         msg: `Wallet fetched `,
                                         result,
-                                      })
+                                      });
                                     }
-                                  })
+                                  });
                               } else {
                                 const checkNull = [paymentId, txnType].every(
                                   (element) =>
-                                    element === null || element === undefined,
-                                )
+                                    element === null || element === undefined
+                                );
 
                                 // filter by wallet id, payment type, and date
                                 if (
@@ -1912,17 +1906,17 @@ const filterForDownload = async (req, res) => {
                                         { updatedAt: { $lte: toDate } },
                                       ],
                                     })
-                                    .populate('payment')
+                                    .populate("payment")
                                     .exec((error, request) => {
                                       if (request == null) {
                                         console.log({
                                           msg: `No wallet history found `,
                                           error,
-                                        })
+                                        });
                                         res.status(400).json({
                                           msg: `No wallet history found`,
                                           error,
-                                        })
+                                        });
                                       } else {
                                         var result = request.map(
                                           (element, index) => {
@@ -1937,7 +1931,7 @@ const filterForDownload = async (req, res) => {
                                               walletBalance,
                                               createdAt,
                                               updatedAt,
-                                            } = element
+                                            } = element;
 
                                             var result = {
                                               ...result,
@@ -1955,30 +1949,30 @@ const filterForDownload = async (req, res) => {
                                               balanceAfter: walletBalance,
                                               createdAt: createdAt,
                                               updatedAt: updatedAt,
-                                            }
+                                            };
 
-                                            return result
-                                          },
-                                        )
+                                            return result;
+                                          }
+                                        );
 
                                         console.log({
                                           msg: `Wallet fetched `,
                                           result,
-                                        })
+                                        });
                                         res.status(200).json({
                                           msg: `Wallet fetched `,
                                           result,
-                                        })
+                                        });
                                       }
-                                    })
+                                    });
                                 } else {
                                   const checkNull = [
                                     paymentId,
                                     paymentType,
                                   ].every(
                                     (element) =>
-                                      element === null || element === undefined,
-                                  )
+                                      element === null || element === undefined
+                                  );
 
                                   // filter by wallet id, txn type, and date
                                   if (
@@ -1997,17 +1991,17 @@ const filterForDownload = async (req, res) => {
                                           { updatedAt: { $lte: toDate } },
                                         ],
                                       })
-                                      .populate('payment')
+                                      .populate("payment")
                                       .exec((error, request) => {
                                         if (request == null) {
                                           console.log({
                                             msg: `No wallet history found `,
                                             error,
-                                          })
+                                          });
                                           res.status(400).json({
                                             msg: `No wallet history found`,
                                             error,
-                                          })
+                                          });
                                         } else {
                                           var result = request.map(
                                             (element, index) => {
@@ -2022,7 +2016,7 @@ const filterForDownload = async (req, res) => {
                                                 walletBalance,
                                                 createdAt,
                                                 updatedAt,
-                                              } = element
+                                              } = element;
 
                                               var result = {
                                                 ...result,
@@ -2040,29 +2034,29 @@ const filterForDownload = async (req, res) => {
                                                 balanceAfter: walletBalance,
                                                 createdAt: createdAt,
                                                 updatedAt: updatedAt,
-                                              }
+                                              };
 
-                                              return result
-                                            },
-                                          )
+                                              return result;
+                                            }
+                                          );
 
                                           console.log({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                           res.status(200).json({
                                             msg: `Wallet fetched `,
                                             result,
-                                          })
+                                          });
                                         }
-                                      })
+                                      });
                                   } else {
                                     console.log({
                                       msg: `Invalid filter parameter selected`,
-                                    })
+                                    });
                                     res.status(400).json({
                                       msg: `Invalid filter parameter selected`,
-                                    })
+                                    });
                                   }
                                 }
                               }
@@ -2080,26 +2074,26 @@ const filterForDownload = async (req, res) => {
       }
     }
   }
-}
+};
 
 const aggregateBalance = async (req, res) => {
   walletHistoryModel.aggregate(
     [
       {
-        $group: { _id: '$paymentType', aggBalance: { $sum: '$walletBalance' } },
+        $group: { _id: "$paymentType", aggBalance: { $sum: "$walletBalance" } },
       },
     ],
     (err, result) => {
       if (err) {
-        console.log({ msg: 'No wallet record found', err })
-        res.status(400).json({ msg: 'No wallet record found', err })
+        console.log({ msg: "No wallet record found", err });
+        res.status(400).json({ msg: "No wallet record found", err });
       } else {
-        console.log({ msg: 'Aggregate Balance fetched ', result })
-        res.status(200).json({ msg: 'Aggregate Balance fetched', result })
+        console.log({ msg: "Aggregate Balance fetched ", result });
+        res.status(200).json({ msg: "Aggregate Balance fetched", result });
       }
-    },
-  )
-}
+    }
+  );
+};
 
 // const debitWallet2 = async (req, res) => {
 //   const { studentId } = req.params
@@ -2131,6 +2125,64 @@ const aggregateBalance = async (req, res) => {
 //   )
 // }
 
+// const debitWallet = async (req, res) => {
+//   const {
+//     walletId,
+//     payment,
+//     amount,
+//     paymentRef,
+//     txnType,
+//     balanceBefore,
+//     walletBalance,
+//   } = req.body
+
+//   const paymentType = 'debit'
+
+//   walletHistoryModel.find({ paymentRef: paymentRef }, (err, result) => {
+//     if (result?.length > 0) {
+//       console.log({
+//         msg: 'Payment already exist on wallet history',
+//         result,
+//       })
+//       res.status(400).json({ msg: 'Payment already exist on wallet history' })
+//     } else {
+//       walletHistoryModel.create(
+//         {
+//           walletId,
+//           payment,
+//           amount,
+//           paymentRef,
+//           paymentType,
+//           txnType,
+//           balanceBefore,
+//           walletBalance,
+//         },
+//         (error, data) => {
+//           if (err) {
+//             console.log({
+//               msg: `Failed to debit wallet `,
+//               error,
+//             })
+//             res.status(400).json({
+//               msg: `Failed to debit wallet `,
+//               error,
+//             })
+//           } else {
+//             console.log({
+//               msg: `Wallet debited successfully`,
+//               result,
+//             })
+//             res.status(200).json({
+//               msg: `Wallet debited successfully `,
+//               result,
+//             })
+//           }
+//         },
+//       )
+//     }
+//   })
+// }
+
 const debitWallet = async (req, res) => {
   const {
     walletId,
@@ -2138,59 +2190,88 @@ const debitWallet = async (req, res) => {
     amount,
     paymentRef,
     txnType,
-    balanceBefore,
-    walletBalance,
-  } = req.body
+    //balanceBefore,
+    //walletBalance,
+  } = req.body;
 
-  const paymentType = 'debit'
+  const paymentType = "debit";
 
-  walletHistoryModel.find({ paymentRef: paymentRef }, (err, result) => {
-    if (result?.length > 0) {
-      console.log({
-        msg: 'Payment already exist on wallet history',
-        result,
-      })
-      res.status(400).json({ msg: 'Payment already exist on wallet history' })
-    } else {
-      walletHistoryModel.create(
-        {
-          walletId,
-          payment,
-          amount,
-          paymentRef,
-          paymentType,
-          txnType,
-          balanceBefore,
-          walletBalance,
-        },
-        (error, data) => {
-          if (err) {
+  //Query to check if there is enough balance before proceeding to making payment
+  walletHistoryModel
+    .find({ walletId: walletId })
+    .limit(1)
+    .sort({ $natural: -1 })
+    .then((response) => {
+      const studentBalance =
+        response?.length < 1 ? 0.0 : response[0]?.walletBalance;
+
+      const balanceBefore = parseFloat(studentBalance);
+
+      const walletBalance = balanceBefore - amount;
+
+      if (response?.length < 1 || balanceBefore < amount) {
+        response =
+          response?.length < 1
+            ? [{ walletBalance: { $numberDecimal: 0.0 } }]
+            : response;
+        console.log({ msg: "Insufficient Fund", response });
+        res.status(400).json({ msg: "Insufficient Fund", response });
+      } else {
+        walletHistoryModel.find({ paymentRef: paymentRef }, (err, result) => {
+          if (result?.length > 0) {
             console.log({
-              msg: `Failed to debit wallet `,
-              error,
-            })
-            res.status(400).json({
-              msg: `Failed to debit wallet `,
-              error,
-            })
+              msg: "Payment already exist on wallet history",
+              result,
+            });
+            res
+              .status(400)
+              .json({ msg: "Payment already exist on wallet history" });
           } else {
-            console.log({
-              msg: `Wallet debited successfully`,
-              result,
-            })
-            res.status(200).json({
-              msg: `Wallet debited successfully `,
-              result,
-            })
+            walletHistoryModel.create(
+              {
+                walletId,
+                payment,
+                amount,
+                paymentRef,
+                paymentType,
+                txnType,
+                balanceBefore,
+                walletBalance,
+              },
+              (error, data) => {
+                if (err) {
+                  console.log({
+                    msg: `Failed to debit wallet `,
+                    error,
+                  });
+                  res.status(400).json({
+                    msg: `Failed to debit wallet `,
+                    error,
+                  });
+                } else {
+                  console.log({
+                    msg: `Wallet debited successfully`,
+                    result,
+                  });
+                  res.status(200).json({
+                    msg: `Wallet debited successfully `,
+                    result,
+                  });
+                }
+              }
+            );
           }
-        },
-      )
-    }
-  })
-}
+        });
+      }
+    })
+    .catch((err) => {
+      console.log({ msg: "No wallet record found", err });
+      res.status(400).json({ msg: "No wallet record found", err });
+    });
+};
 
 const delWallet = async (req, res) => {
-  const { studentId } = req.params
+  const { studentId } = req.params;
   walletHistoryModel.findOneAndDelete(
     { studentId: studentId },
     (error, result) => {
@@ -2198,24 +2279,24 @@ const delWallet = async (req, res) => {
         console.log({
           msg: `Failed to close wallet `,
           error,
-        })
+        });
         res.status(400).json({
           msg: `Failed to close wallet  `,
           error,
-        })
+        });
       } else {
         console.log({
           msg: `Wallet closed successfully`,
           result,
-        })
+        });
         res.status(200).json({
           msg: `Wallet closed successfully `,
           result,
-        })
+        });
       }
-    },
-  )
-}
+    }
+  );
+};
 
 module.exports = {
   fundWallet,
@@ -2227,4 +2308,4 @@ module.exports = {
   aggregateBalance,
   debitWallet,
   delWallet,
-}
+};
