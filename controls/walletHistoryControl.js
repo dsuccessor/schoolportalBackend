@@ -2195,6 +2195,8 @@ const debitWallet = async (req, res) => {
   } = req.body;
 
   const paymentType = "debit";
+  // console.log("walletId");
+  // console.log(walletId);
 
   //Query to check if there is enough balance before proceeding to making payment
   walletHistoryModel
@@ -2202,12 +2204,22 @@ const debitWallet = async (req, res) => {
     .limit(1)
     .sort({ $natural: -1 })
     .then((response) => {
+      // console.log("response");
+      // console.log(response[0]?.walletBalance);
+      //console.log(response?.length);
+
       const studentBalance =
         response?.length < 1 ? 0.0 : response[0]?.walletBalance;
+      // console.log("StudentBalance");
+      // console.log(studentBalance);
 
       const balanceBefore = parseFloat(studentBalance);
+      // console.log("balanceBefore");
+      // console.log(balanceBefore);
 
       const walletBalance = balanceBefore - amount;
+      // console.log("walletBalance");
+      // console.log(walletBalance);
 
       if (response?.length < 1 || balanceBefore < amount) {
         response =
